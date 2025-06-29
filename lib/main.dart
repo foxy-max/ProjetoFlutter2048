@@ -47,6 +47,14 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
     setState(() {});
   }
 
+  void _definirdificuldade(int size, int target) {
+    setState(() {
+      TamanhoGrid = size;
+      ValorAlvo = target;
+      _iniciarjogo();
+    });
+  }
+
   void _adicionarpeca() {
     List<List<int>> espacosvazios = [];
     for (int i = 0; i < TamanhoGrid; i++) {
@@ -69,6 +77,10 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
     if (Vitoria || Derrota) return;
 
     bool movimento = false;
+    List<List<int>> antigagrid = List.generate(
+      TamanhoGrid,
+      (i) => List.from(grid[i]),
+    );
 
     switch (direction) {
       case 'esquerda':
@@ -200,8 +212,8 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
   }
 
   Widget _buildespaco(int value) {
-    Color backgroundColor = Colors.grey[300]!;
-    Color textColor = Colors.black87;
+    Color backgroundColor = _getespacoColor(value);
+    Color textColor = value < 8 ? Colors.black87 : Colors.white;
 
     return Container(
       decoration: BoxDecoration(
@@ -221,10 +233,75 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
     );
   }
 
+  Color _getespacoColor(int value) {
+    switch (value) {
+      case 0:
+        return Colors.grey[300]!;
+      case 2:
+        return Colors.grey[200]!;
+      case 4:
+        return Colors.grey[400]!;
+      case 8:
+        return Colors.orange[300]!;
+      case 16:
+        return Colors.orange[400]!;
+      case 32:
+        return Colors.orange[500]!;
+      case 64:
+        return Colors.orange[600]!;
+      case 128:
+        return Colors.red[300]!;
+      case 256:
+        return Colors.red[400]!;
+      case 512:
+        return Colors.red[500]!;
+      case 1024:
+        return Colors.red[600]!;
+      case 2048:
+        return Colors.red[700]!;
+      default:
+        return Colors.blueGrey[800]!;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('2048 - Movimentos: $moveu')),
+      appBar: AppBar(
+        title: Text('2048 - Movimentos: $moveu'),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (String value) {
+              switch (value) {
+                case 'facil':
+                  _definirdificuldade(4, 1024);
+                  break;
+                case 'medio':
+                  _definirdificuldade(5, 2048);
+                  break;
+                case 'dificil':
+                  _definirdificuldade(6, 4096);
+                  break;
+              }
+            },
+            itemBuilder:
+                (BuildContext context) => [
+                  const PopupMenuItem(
+                    value: 'facil',
+                    child: Text('Fácil (4x4, 1024)'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'medio',
+                    child: Text('Médio (5x5, 2048)'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'dificil',
+                    child: Text('Difícil (6x6, 4096)'),
+                  ),
+                ],
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(
