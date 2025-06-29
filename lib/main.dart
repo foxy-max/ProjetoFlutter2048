@@ -25,8 +25,11 @@ class PaginaPrincipal extends StatefulWidget {
 
 class _PaginaPrincipalState extends State<PaginaPrincipal> {
   int TamanhoGrid = 4;
+  int ValorAlvo = 1024;
   List<List<int>> grid = [];
   int moveu = 0;
+  bool Vitoria = false;
+  bool Derrota = false;
 
   @override
   void initState() {
@@ -39,6 +42,8 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
     _adicionarpeca();
     _adicionarpeca();
     moveu = 0;
+    Vitoria = false;
+    Derrota = false;
     setState(() {});
   }
 
@@ -55,10 +60,14 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       final random = Random();
       final espaco = espacosvazios[random.nextInt(espacosvazios.length)];
       grid[espaco[0]][espaco[1]] = random.nextDouble() < 0.9 ? 2 : 4;
+    } else {
+      Derrota = true;
     }
   }
 
   Future<void> _move(String direction) async {
+    if (Vitoria || Derrota) return;
+
     bool movimento = false;
 
     switch (direction) {
@@ -80,6 +89,15 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
       setState(() {
         _adicionarpeca();
         moveu++;
+        if (_verificaVitoria()) {
+          Vitoria = true;
+        } else if (_verificaDerrota()) {
+          Derrota = true;
+        }
+      });
+    } else if (_verificaDerrota()) {
+      setState(() {
+        Derrota = true;
       });
     }
   }
@@ -155,6 +173,32 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
     return movimento;
   }
 
+  bool _verificaVitoria() {
+    for (int i = 0; i < TamanhoGrid; i++) {
+      for (int j = 0; j < TamanhoGrid; j++) {
+        if (grid[i][j] >= ValorAlvo) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  bool _verificaDerrota() {
+    if (grid.every((row) => row.every((cell) => cell != 0))) {
+      for (int i = 0; i < TamanhoGrid; i++) {
+        for (int j = 0; j < TamanhoGrid; j++) {
+          if ((i < TamanhoGrid - 1 && grid[i][j] == grid[i + 1][j]) ||
+              (j < TamanhoGrid - 1 && grid[i][j] == grid[i][j + 1])) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
   Widget _buildespaco(int value) {
     Color backgroundColor = Colors.grey[300]!;
     Color textColor = Colors.black87;
@@ -198,6 +242,24 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
               },
             ),
           ),
+          if (Vitoria)
+            const Text(
+              "VOCÊ GANHOU!",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
+              ),
+            ),
+          if (Derrota)
+            const Text(
+              "VOCÊ PERDEU!",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+              ),
+            ),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
